@@ -38,8 +38,14 @@ public class Intervention {
     @Column(name = "intervenant_nom", length = 150)
     private String intervenantNom;
 
+
     @Column(name = "intervenant_societe", length = 150)
     private String intervenantSociete;
+
+    @Enumerated(EnumType.STRING)
+
+    @Column(nullable = false, length = 20)
+    private StatutIntervention statut = StatutIntervention.OUVERT;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -122,6 +128,14 @@ public class Intervention {
         this.intervenantSociete = intervenantSociete;
     }
 
+
+    public StatutIntervention getStatut() {
+        return statut;
+    }
+
+    public void setStatut(StatutIntervention statut) {
+        this.statut = statut;
+    }
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

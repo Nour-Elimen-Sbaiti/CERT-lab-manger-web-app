@@ -67,6 +67,18 @@ public class Equipement {
     @Column(columnDefinition = "TEXT")
     private String observations;
 
+    @ManyToOne
+    @JoinColumn(name = "responsable_id")
+    private Personnel responsable;
+
+    @ManyToOne
+    @JoinColumn(name = "suppleant_id")
+    private Personnel suppleant;
+
+    @ManyToOne
+    @JoinColumn(name = "contact_technique_id")
+    private Personnel contactTechnique;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -231,6 +243,30 @@ public class Equipement {
 
     public void setObservations(String observations) {
         this.observations = observations;
+    }
+
+    public Personnel getResponsable() {
+        return responsable;
+    }
+
+    public void setResponsable(Personnel responsable) {
+        this.responsable = responsable;
+    }
+
+    public Personnel getSuppleant() {
+        return suppleant;
+    }
+
+    public void setSuppleant(Personnel suppleant) {
+        this.suppleant = suppleant;
+    }
+
+    public Personnel getContactTechnique() {
+        return contactTechnique;
+    }
+
+    public void setContactTechnique(Personnel contactTechnique) {
+        this.contactTechnique = contactTechnique;
     }
 
     public LocalDateTime getCreatedAt() {

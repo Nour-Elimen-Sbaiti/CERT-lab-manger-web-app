@@ -1,4 +1,7 @@
 package com.cert.calibration_hub.equipement;
 
-public class ResultatEtalonnage {
+public enum ResultatEtalonnage {
+    CONFORME,
+    NON_CONFORME,
+    EN_ATTENTE
 }
