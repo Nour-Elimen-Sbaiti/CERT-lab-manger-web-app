@@ -42,6 +42,11 @@ public class Intervention {
     @Column(name = "intervenant_societe", length = 150)
     private String intervenantSociete;
 
+    @ManyToOne
+    @JoinColumn(name = "labo_etalonnage_id")
+    private LaboEtalonnage laboEtalonnage;
+
+
     @Enumerated(EnumType.STRING)
 
     @Column(nullable = false, length = 20)
@@ -126,6 +131,14 @@ public class Intervention {
 
     public void setIntervenantSociete(String intervenantSociete) {
         this.intervenantSociete = intervenantSociete;
+    }
+
+    public LaboEtalonnage getLaboEtalonnage() {
+        return laboEtalonnage;
+    }
+
+    public void setLaboEtalonnage(LaboEtalonnage laboEtalonnage) {
+        this.laboEtalonnage = laboEtalonnage;
     }
 
 

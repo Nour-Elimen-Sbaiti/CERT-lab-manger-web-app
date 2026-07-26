@@ -13,11 +13,14 @@ public class EquipementService {
 
     private final EquipementRepository equipementRepository;
     private final PersonnelRepository personnelRepository;
+    private final LaboEtalonnageRepository laboEtalonnageRepository;
 
     public EquipementService(EquipementRepository equipementRepository,
-                             PersonnelRepository personnelRepository) {
+                             PersonnelRepository personnelRepository,
+                             LaboEtalonnageRepository laboEtalonnageRepository) {
         this.equipementRepository = equipementRepository;
         this.personnelRepository = personnelRepository;
+        this.laboEtalonnageRepository = laboEtalonnageRepository;
     }
 
     public List<EquipementResponseDTO> findAll() {
@@ -93,6 +96,17 @@ public class EquipementService {
         equipementRepository.save(e);
     }
 
+
+    @Transactional
+    public void assignerLaboEtalonnage(Long equipementId, Long laboId) {
+        Equipement e = equipementRepository.findById(equipementId)
+                .orElseThrow(() -> new EquipementNotFoundException(equipementId));
+        LaboEtalonnage labo = laboEtalonnageRepository.findById(laboId)
+                .orElseThrow(() -> new LaboEtalonnageNotFoundException(laboId));
+        e.setLaboEtalonnage(labo);
+        equipementRepository.save(e);
+    }
+
     private Equipement getOrThrow(Long id) {
         return equipementRepository.findById(id)
                 .orElseThrow(() -> new EquipementNotFoundException(id));
@@ -114,14 +128,16 @@ public class EquipementService {
         e.setGarantieJusquAu(dto.garantieJusquAu());
         e.setObservations(dto.observations());
     }
-
     private EquipementResponseDTO toResponse(Equipement e) {
         return new EquipementResponseDTO(
                 e.getId(), e.getCodeIdentifiant(), e.getCodeEmplacement(), e.getQrCode(),
                 e.getDesignation(), e.getMarque(), e.getModele(), e.getNumeroSerie(), e.getFournisseur(),
                 e.getDateAcquisition(), e.getDateMiseEnService(), e.getDateReforme(), e.getValeurOrigine(),
                 e.getPeriodiciteValeur(), e.getPeriodiciteUnite(), e.getGarantieJusquAu(),
-                e.getEtat(), e.getObservations(), e.getCreatedAt(), e.getUpdatedAt()
+                e.getEtat(), e.getLaboEtalonnage() != null ? e.getLaboEtalonnage().getNom() : null,
+                e.getObservations(), e.getCreatedAt(), e.getUpdatedAt()
         );
     }
+
+
 }

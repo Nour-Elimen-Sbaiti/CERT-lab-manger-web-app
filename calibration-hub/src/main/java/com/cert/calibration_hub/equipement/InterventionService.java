@@ -84,6 +84,7 @@ public class InterventionService {
                 i.getNumeroBonIntervention(),
                 i.getIntervenantNom(),
                 i.getIntervenantSociete(),
+                i.getLaboEtalonnage() != null ? i.getLaboEtalonnage().getNom() : null,
                 i.getStatut(),
                 etalonnageDto,
                 i.getCreatedAt()

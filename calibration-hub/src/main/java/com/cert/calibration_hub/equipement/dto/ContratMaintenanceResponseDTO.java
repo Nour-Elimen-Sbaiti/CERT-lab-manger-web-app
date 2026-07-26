@@ -8,6 +8,7 @@ public record ContratMaintenanceResponseDTO(
         Long id,
         Long equipementId,
         String prestataire,
+        String laboEtalonnageNom,
         LocalDate dateDebut,
         LocalDate dateFin,
         Integer periodeValeur,

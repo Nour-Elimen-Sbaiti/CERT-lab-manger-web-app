@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import com.cert.calibration_hub.equipement.LaboEtalonnageNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,16 +39,30 @@ public class GlobalExceptionHandler {
                 .body(body("Erreur interne : " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDuplicate(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(body("Un équipement avec ce code identifiant ou ce numéro de série existe déjà.", HttpStatus.CONFLICT));
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String messageComplet = ex.getMostSpecificCause().getMessage();
+        String message;
+
+        if (messageComplet != null && messageComplet.contains("duplicate key")) {
+            message = "Cette valeur existe déjà (code identifiant, numéro de série, ou autre champ unique).";
+        } else if (messageComplet != null && messageComplet.contains("violates foreign key constraint")) {
+            message = "Impossible de supprimer : cette donnée est encore référencée ailleurs (ex: historique, interventions liées).";
+        } else {
+            message = "Cette opération viole une contrainte d'intégrité de la base de données.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body(message, HttpStatus.CONFLICT));
     }
 
     @ExceptionHandler(InterventionInvalideException.class)
     public ResponseEntity<Map<String, Object>> handleInterventionInvalide(InterventionInvalideException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body(ex.getMessage(), HttpStatus.BAD_REQUEST));
+    }
+
+    @ExceptionHandler(LaboEtalonnageNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleLaboNotFound(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body(ex.getMessage(), HttpStatus.NOT_FOUND));
     }
 
     private Map<String, Object> body(String message, HttpStatus status) {

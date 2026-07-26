@@ -79,4 +79,10 @@ public class EquipementController {
         equipementService.assignerPersonnel(id, responsableId, suppleantId, contactTechniqueId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/labo-etalonnage")
+    public ResponseEntity<Void> assignerLaboEtalonnage(@PathVariable Long id, @RequestParam Long laboId) {
+        equipementService.assignerLaboEtalonnage(id, laboId);
+        return ResponseEntity.noContent().build();
+    }
 }

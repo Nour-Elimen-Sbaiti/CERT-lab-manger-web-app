@@ -6,6 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import com.cert.calibration_hub.user.dto.UserResponseDTO;
+import com.cert.calibration_hub.user.dto.RoleUpdateDTO;
+
+
 
 @Service
 public class UserService {
@@ -140,6 +145,46 @@ public class UserService {
 
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
+    }
+
+    public List<UserResponseDTO> lister() {
+        return userRepository.findAll().stream().map(this::versDTO).toList();
+    }
+
+    public UserResponseDTO trouverParId(Long id) {
+        return versDTO(getOrThrow(id));
+    }
+
+    @Transactional
+    public UserResponseDTO changerRole(Long id, Role nouveauRole) {
+        User u = getOrThrow(id);
+        u.setRole(nouveauRole);
+        return versDTO(userRepository.save(u));
+    }
+
+    @Transactional
+    public UserResponseDTO activerDesactiver(Long id, boolean enabled) {
+        User u = getOrThrow(id);
+        u.setEnabled(enabled);
+        return versDTO(userRepository.save(u));
+    }
+
+    @Transactional
+    public void supprimer(Long id) {
+        User u = getOrThrow(id);
+        userRepository.delete(u);
+    }
+
+    private User getOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable, id = " + id));
+    }
+
+    private UserResponseDTO versDTO(User u) {
+        return new UserResponseDTO(
+                u.getId(), u.getUsername(), u.getNom(), u.getPrenom(), u.getEmail(),
+                u.getRole(), u.isEnabled(), u.isEmailVerified(), u.getCreatedAt()
+        );
     }
 }
 

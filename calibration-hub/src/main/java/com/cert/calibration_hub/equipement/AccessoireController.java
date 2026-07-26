@@ -28,4 +28,11 @@ public class AccessoireController {
     public ResponseEntity<List<AccessoireResponseDTO>> listerParEquipement(@PathVariable Long equipementId) {
         return ResponseEntity.ok(accessoireService.listerParEquipement(equipementId));
     }
+
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        accessoireService.delete(id);
+    }
 }

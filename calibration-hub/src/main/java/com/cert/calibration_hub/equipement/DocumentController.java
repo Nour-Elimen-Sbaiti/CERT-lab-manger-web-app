@@ -35,4 +35,11 @@ public class DocumentController {
     public ResponseEntity<List<DocumentResponseDTO>> listerParEquipement(@PathVariable Long equipementId) {
         return ResponseEntity.ok(documentService.listerParEquipement(equipementId));
     }
+
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        documentService.delete(id);
+    }
 }

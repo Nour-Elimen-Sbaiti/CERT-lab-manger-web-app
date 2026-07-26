@@ -79,6 +79,10 @@ public class Equipement {
     @JoinColumn(name = "contact_technique_id")
     private Personnel contactTechnique;
 
+    @ManyToOne
+    @JoinColumn(name = "labo_etalonnage_id")
+    private LaboEtalonnage laboEtalonnage;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -267,6 +271,14 @@ public class Equipement {
 
     public void setContactTechnique(Personnel contactTechnique) {
         this.contactTechnique = contactTechnique;
+    }
+
+    public LaboEtalonnage getLaboEtalonnage() {
+        return laboEtalonnage;
+    }
+
+    public void setLaboEtalonnage(LaboEtalonnage laboEtalonnage) {
+        this.laboEtalonnage = laboEtalonnage;
     }
 
     public LocalDateTime getCreatedAt() {

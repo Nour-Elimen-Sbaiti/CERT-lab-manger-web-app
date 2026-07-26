@@ -18,6 +18,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+
+        if (!EmailDomainValidator.domainAcceptsMail(request.getEmail())) {
+            return ResponseEntity.badRequest()
+                    .body("Le domaine de cet email semble invalide ou inexistant. Vérifie l'adresse saisie.");
+        }
+
         try {
             User user = userService.registerUser(
                     request.getUsername(),

@@ -2,6 +2,7 @@ package com.cert.calibration_hub.user;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,6 +34,17 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/**").hasRole("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/equipements/**",
+                                "/api/interventions/**",
+                                "/api/contrats-maintenance/**",
+                                "/api/documents/**",
+                                "/api/accessoires/**",
+                                "/api/personnel/**",
+                                "/api/labos-etalonnage/**",
+                                "/api/demandes-prestation/**"
+                        ).hasAnyRole("ADMINISTRATEUR", "CHEF_LABORATOIRE")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

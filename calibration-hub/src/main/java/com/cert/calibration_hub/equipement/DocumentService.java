@@ -78,6 +78,15 @@ public class DocumentService {
                 .toList();
     }
 
+
+    // DocumentService.java
+    public void delete(Long id) {
+        if (!documentRepository.existsById(id)) {
+            throw new RuntimeException("Document introuvable, id = " + id);
+        }
+        documentRepository.deleteById(id);
+    }
+
     private DocumentResponseDTO versDTO(Document d) {
         return new DocumentResponseDTO(
                 d.getId(),

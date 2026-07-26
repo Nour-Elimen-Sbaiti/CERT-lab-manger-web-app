@@ -17,6 +17,7 @@ public record InterventionResponseDTO(
         String numeroBonIntervention,
         String intervenantNom,
         String intervenantSociete,
+        String laboEtalonnageNom,
         StatutIntervention statut,
         EtalonnageDetailDTO etalonnage,
         LocalDateTime createdAt

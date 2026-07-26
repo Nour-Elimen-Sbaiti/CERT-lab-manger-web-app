@@ -46,6 +46,7 @@ public class ContratMaintenanceService {
                 c.getId(),
                 c.getEquipement().getId(),
                 c.getPrestataire(),
+                c.getLaboEtalonnage() != null ? c.getLaboEtalonnage().getNom() : null,
                 c.getDateDebut(),
                 c.getDateFin(),
                 c.getPeriodeValeur(),
@@ -53,4 +54,6 @@ public class ContratMaintenanceService {
                 c.estValide()
         );
     }
+
+
 }

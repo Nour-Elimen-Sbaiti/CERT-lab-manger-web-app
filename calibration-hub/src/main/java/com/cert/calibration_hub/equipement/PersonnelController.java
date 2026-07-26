@@ -28,4 +28,13 @@ public class PersonnelController {
     public ResponseEntity<List<PersonnelResponseDTO>> lister() {
         return ResponseEntity.ok(personnelService.lister());
     }
+
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        personnelService.delete(id);
+    }
+
 }
+

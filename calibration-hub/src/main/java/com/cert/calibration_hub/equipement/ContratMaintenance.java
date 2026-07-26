@@ -19,6 +19,10 @@ public class ContratMaintenance {
     @Column(nullable = false, length = 150)
     private String prestataire;
 
+    @ManyToOne
+    @JoinColumn(name = "labo_etalonnage_id")
+    private LaboEtalonnage laboEtalonnage;
+
     @Column(name = "date_debut", nullable = false)
     private LocalDate dateDebut;
 
@@ -67,6 +71,14 @@ public class ContratMaintenance {
 
     public void setPrestataire(String prestataire) {
         this.prestataire = prestataire;
+    }
+
+    public LaboEtalonnage getLaboEtalonnage() {
+        return laboEtalonnage;
+    }
+
+    public void setLaboEtalonnage(LaboEtalonnage laboEtalonnage) {
+        this.laboEtalonnage = laboEtalonnage;
     }
 
     public LocalDate getDateDebut() {

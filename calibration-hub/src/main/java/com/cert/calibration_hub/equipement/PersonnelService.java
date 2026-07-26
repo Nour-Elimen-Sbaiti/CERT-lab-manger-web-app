@@ -29,7 +29,16 @@ public class PersonnelService {
         return personnelRepository.findAll().stream().map(this::versDTO).toList();
     }
 
+    // PersonnelService.java
+    public void delete(Long id) {
+        if (!personnelRepository.existsById(id)) {
+            throw new RuntimeException("Personnel introuvable, id = " + id);
+        }
+        personnelRepository.deleteById(id);
+    }
+
     private PersonnelResponseDTO versDTO(Personnel p) {
         return new PersonnelResponseDTO(p.getId(), p.getNom(), p.getPrenom(), p.getEmail(), p.getTelephone());
     }
 }
+

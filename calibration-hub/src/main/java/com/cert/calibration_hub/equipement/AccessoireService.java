@@ -36,6 +36,14 @@ public class AccessoireService {
                 .stream().map(this::versDTO).toList();
     }
 
+    // AccessoireService.java
+    public void delete(Long id) {
+        if (!accessoireRepository.existsById(id)) {
+            throw new RuntimeException("Accessoire introuvable, id = " + id);
+        }
+        accessoireRepository.deleteById(id);
+    }
+
     private AccessoireResponseDTO versDTO(Accessoire a) {
         return new AccessoireResponseDTO(
                 a.getId(), a.getEquipement().getId(), a.getDesignation(),

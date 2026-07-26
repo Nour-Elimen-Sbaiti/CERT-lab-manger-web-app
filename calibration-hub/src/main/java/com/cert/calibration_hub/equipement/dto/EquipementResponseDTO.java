@@ -25,6 +25,7 @@ public record EquipementResponseDTO(
         PeriodiciteUnite periodiciteUnite,
         LocalDate garantieJusquAu,
         EtatEquipement etat,
+        String laboEtalonnageNom,
         String observations,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
