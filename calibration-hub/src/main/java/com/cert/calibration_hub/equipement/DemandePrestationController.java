@@ -27,6 +27,11 @@ public class DemandePrestationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(demandePrestationService.creer(dto));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<DemandePrestationResponseDTO> modifier(@PathVariable Long id, @Valid @RequestBody DemandePrestationRequestDTO dto) {
+        return ResponseEntity.ok(demandePrestationService.modifier(id, dto));
+    }
+
     @GetMapping
     public ResponseEntity<List<DemandePrestationResponseDTO>> lister() {
         return ResponseEntity.ok(demandePrestationService.lister());

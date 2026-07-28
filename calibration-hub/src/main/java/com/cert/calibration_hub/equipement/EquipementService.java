@@ -66,7 +66,7 @@ public class EquipementService {
     }
 
     public List<EquipementResponseDTO> search(String motCle) {
-        return equipementRepository.findByDesignationContainingIgnoreCase(motCle)
+        return equipementRepository.searchMultiField(motCle)
                 .stream().map(this::toResponse).toList();
     }
 

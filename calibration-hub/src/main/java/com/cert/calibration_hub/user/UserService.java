@@ -194,6 +194,12 @@ public class UserService {
         return userRepository.findAll().stream().map(this::versDTO).toList();
     }
 
+    public UserResponseDTO trouverParUsername(String username) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + username));
+        return versDTO(u);
+    }
+
     public UserResponseDTO trouverParId(Long id) {
         return versDTO(getOrThrow(id));
     }

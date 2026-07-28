@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { api, baseUrl } from './api'
+import { api } from './api'
 import './styles.css'
 
 const stateLabels = { NOUVEAU: 'Nouveau', DISPONIBLE: 'Disponible', EN_UTILISATION: 'En utilisation', EN_ETALONNAGE: 'Étalonnage', EN_MAINTENANCE: 'Maintenance', EN_PANNE: 'En panne', HORS_SERVICE: 'Hors service', REFORME: 'Réformé' }
 const states = Object.keys(stateLabels)
 const nav = [
   ['dashboard', '▦', 'Vue d’ensemble'], ['equipements', '⌘', 'Équipements'], ['alertes', '◉', 'Alertes'],
-  ['laboratoires', '◌', 'Référentiel labos'], ['demandes', '▤', 'Demandes']
+  ['laboratoires', '◌', 'Laboratoires'], ['personnel', '♙', 'Personnel'], ['demandes', '▤', 'Demandes']
 ]
 const emptyEquipment = { codeIdentifiant:'', codeEmplacement:'', designation:'', marque:'', modele:'', numeroSerie:'', fournisseur:'', dateAcquisition:'', dateMiseEnService:'', valeurOrigine:'', periodiciteValeur:'12', periodiciteUnite:'MOIS', garantieJusquAu:'', observations:'' }
 
@@ -35,12 +35,6 @@ const BellIcon = () => (
   </svg>
 )
 
-const TrashIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor" style={{ width: '18px', height: '18px' }}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-  </svg>
-)
-
 function getEtatStyle(etat) {
   const lower = etat?.toLowerCase().replaceAll('_', '-');
   if (lower === 'disponible') return { color: '#16835d', bg: '#e0f5ea' };
@@ -50,7 +44,7 @@ function getEtatStyle(etat) {
   return { color: '#7160bb', bg: '#f0ecff' }; // nouveau
 }
 
-function Login({ onLogin, onGoToRegister, onGoToForgotPassword, notice }) {
+function Login({ onLogin, onGoToRegister, onGoToForgotPassword }) {
   const [values, setValues] = useState({ username:'', password:'' }), [error, setError] = useState(''), [busy,setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
@@ -82,7 +76,7 @@ function Login({ onLogin, onGoToRegister, onGoToForgotPassword, notice }) {
     } 
   }
 
-  return <main className="login-page"><section className="login-aside"><div className="brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', width: '100%', marginBottom: '30px' }}><img src="/logo_cert.png" alt="Logo CERT" style={{ height: '144px', width: 'auto', objectFit: 'contain' }} /><span style={{ fontSize: '26px', letterSpacing: '1px', textAlign: 'center' }}>CERT <b>CALIBRATION HUB</b></span></div><div className="login-hero"><p className="eyebrow">GESTION MÉTROLOGIQUE</p><h1>La précision,<br/><em>en toute confiance.</em></h1><p>Pilotez vos équipements, étalonnages et échéances depuis un espace unique et sécurisé.</p><div className="hero-stats"><span><b>24/7</b> suivi centralisé</span><span><b>100%</b> traçabilité</span></div></div><small>© 2026 CERT Calibration Hub</small></section><section className="login-card"><div><p className="eyebrow">BON RETOUR</p><h2>Connectez-vous à votre espace</h2><p className="muted">Saisissez vos identifiants pour continuer.</p></div>{notice && <div className={notice.type === 'error' ? 'error' : 'notice'}>{notice.text}</div>}<form onSubmit={submit}><label>Nom d’utilisateur<input autoFocus value={values.username} onChange={e=>setValues({...values,username:e.target.value})} placeholder="ex. jdupont" required/></label><label>Mot de passe<div style={{ position: 'relative' }}><input type={showPassword ? 'text' : 'password'} value={values.password} onChange={e=>setValues({...values,password:e.target.value})} placeholder="••••••••" required style={{ paddingRight: '45px' }} /><button type="button" onClick={()=>setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#6d8194', padding: '5px' }}>{showPassword ? <EyeSlashIcon /> : <EyeIcon />}</button></div></label><div className="form-row"><label className="checkbox"><input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}/> Se souvenir de moi</label><button type="button" className="link" onClick={onGoToForgotPassword}>Mot de passe oublié ?</button></div>{error && <div className="error">{error}</div>}<button className="primary wide" disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'} <span>→</span></button></form><p className="muted" style={{ textAlign: 'center', fontSize: '13px', marginTop: '20px' }}>Nouveau sur la plateforme ? <button type="button" className="link" onClick={onGoToRegister}>Créer un compte</button></p><p className="login-help">Accès réservé aux utilisateurs autorisés.<br/>Contactez votre administrateur si nécessaire.</p></section></main>
+  return <main className="login-page"><section className="login-aside"><div className="brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', width: '100%', marginBottom: '30px' }}><img src="/logo_cert.png" alt="Logo CERT" style={{ height: '144px', width: 'auto', objectFit: 'contain' }} /><span style={{ fontSize: '26px', letterSpacing: '1px', textAlign: 'center' }}>CERT <b>CALIBRATION HUB</b></span></div><div className="login-hero"><p className="eyebrow">GESTION MÉTROLOGIQUE</p><h1>La précision,<br/><em>en toute confiance.</em></h1><p>Pilotez vos équipements, étalonnages et échéances depuis un espace unique et sécurisé.</p><div className="hero-stats"><span><b>24/7</b> suivi centralisé</span><span><b>100%</b> traçabilité</span></div></div><small>© 2026 CERT Calibration Hub</small></section><section className="login-card"><div><p className="eyebrow">BON RETOUR</p><h2>Connectez-vous à votre espace</h2><p className="muted">Saisissez vos identifiants pour continuer.</p></div><form onSubmit={submit}><label>Nom d’utilisateur<input autoFocus value={values.username} onChange={e=>setValues({...values,username:e.target.value})} placeholder="ex. jdupont" required/></label><label>Mot de passe<div style={{ position: 'relative' }}><input type={showPassword ? 'text' : 'password'} value={values.password} onChange={e=>setValues({...values,password:e.target.value})} placeholder="••••••••" required style={{ paddingRight: '45px' }} /><button type="button" onClick={()=>setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#6d8194', padding: '5px' }}>{showPassword ? <EyeSlashIcon /> : <EyeIcon />}</button></div></label><div className="form-row"><label className="checkbox"><input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}/> Se souvenir de moi</label><button type="button" className="link" onClick={onGoToForgotPassword}>Mot de passe oublié ?</button></div>{error && <div className="error">{error}</div>}<button className="primary wide" disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'} <span>→</span></button></form><p className="muted" style={{ textAlign: 'center', fontSize: '13px', marginTop: '20px' }}>Nouveau sur la plateforme ? <button type="button" className="link" onClick={onGoToRegister}>Créer un compte</button></p><p className="login-help">Accès réservé aux utilisateurs autorisés.<br/>Contactez votre administrateur si nécessaire.</p></section></main>
 }
 
 function Register({ onGoToLogin }) {
@@ -262,43 +256,15 @@ function ForgotPassword({ onGoToLogin }) {
   )
 }
 
-function ProfileModal({ token, onClose, onLogout, refreshKey, onPhotoChanged }) {
+function ProfileModal({ token, onClose, onLogout }) {
   const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
-  const [photoBusy, setPhotoBusy] = useState(false)
-  const [photoError, setPhotoError] = useState('')
-  const [photoVersion, setPhotoVersion] = useState(0)
-  const fileInputRef = useRef(null)
 
   useEffect(() => {
     api('/api/auth/me', { token })
       .then(setProfile)
       .catch(e => setError(friendlyError(e)))
-  }, [token, refreshKey])
-
-  async function handlePhotoChange(e) {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    if (!file.type.startsWith('image/')) { setPhotoError('Veuillez sélectionner un fichier image.'); return }
-    if (file.size > 5 * 1024 * 1024) { setPhotoError('L’image ne doit pas dépasser 5 Mo.'); return }
-    setPhotoError('')
-    setPhotoBusy(true)
-    try {
-      const fd = new FormData()
-      fd.append('photo', file)
-      const updated = await api('/api/auth/me/photo', { method: 'POST', token, body: fd, formData: true })
-      setProfile(updated)
-      setPhotoVersion(v => v + 1)
-      onPhotoChanged?.(updated.photoUrl)
-    } catch (e) {
-      setPhotoError(friendlyError(e))
-    } finally {
-      setPhotoBusy(false)
-    }
-  }
-
-  const photoSrc = profile?.photoUrl ? `${baseUrl}${profile.photoUrl}?v=${photoVersion}` : null
+  }, [token])
 
   return (
     <Modal title="Mon Compte" onClose={onClose}>
@@ -309,34 +275,14 @@ function ProfileModal({ token, onClose, onLogout, refreshKey, onPhotoChanged }) 
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid #edf1f3', paddingBottom: '16px' }}>
-            <div style={{ position: 'relative', width: '60px', height: '60px', flexShrink: 0 }}>
-              <div className="avatar" style={{ width: '60px', height: '60px', fontSize: '20px', fontWeight: 'bold', overflow: 'hidden' }}>
-                {photoSrc ? <img src={photoSrc} alt="Photo de profil" className="avatar-img" /> : profile.username?.slice(0,2).toUpperCase()}
-              </div>
-              <button
-                type="button"
-                title="Changer la photo"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={photoBusy}
-                style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '24px', height: '24px', borderRadius: '50%', border: '2px solid #fff', background: '#137d73', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: photoBusy ? 'default' : 'pointer', fontSize: '12px', padding: 0 }}
-              >
-                {photoBusy ? '…' : '✎'}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: 'none' }}
-              />
+            <div className="avatar" style={{ width: '60px', height: '60px', fontSize: '20px', fontWeight: 'bold' }}>
+              {profile.username?.slice(0,2).toUpperCase()}
             </div>
             <div>
               <h3 style={{ fontSize: '18px', color: '#1e3044' }}>{profile.prenom} {profile.nom}</h3>
               <span className="muted" style={{ fontSize: '14px' }}>@{profile.username}</span>
             </div>
           </div>
-
-          {photoError && <div className="error">{photoError}</div>}
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px 20px' }}>
             <div>
@@ -373,7 +319,7 @@ function ProfileModal({ token, onClose, onLogout, refreshKey, onPhotoChanged }) 
   )
 }
 
-function Shell({ user, page, setPage, children, onLogout, onAvatarClick, alertCount, avatarSrc }) {
+function Shell({ user, page, setPage, children, onLogout, onAvatarClick, alertCount }) {
   const admin = user.role === 'ADMINISTRATEUR';
   return (
     <div className="app">
@@ -399,9 +345,7 @@ function Shell({ user, page, setPage, children, onLogout, onAvatarClick, alertCo
               <BellIcon />
               {alertCount > 0 && <span className="bell-badge">{alertCount}</span>}
             </button>
-            <div className="avatar" onClick={onAvatarClick} style={{ cursor: 'pointer', overflow: 'hidden' }}>
-              {avatarSrc ? <img src={avatarSrc} alt="Photo de profil" className="avatar-img" /> : user.username?.slice(0,2).toUpperCase()}
-            </div>
+            <div className="avatar" onClick={onAvatarClick} style={{ cursor: 'pointer' }}>{user.username?.slice(0,2).toUpperCase()}</div>
           </div>
         </header>
         {children}
@@ -410,104 +354,7 @@ function Shell({ user, page, setPage, children, onLogout, onAvatarClick, alertCo
   )
 }
 
-function Dashboard({ token, username, setPage }) {
-  const [data, setData] = useState(null)
-  const [alerts, setAlerts] = useState([])
-  const [error, setError] = useState('')
-  const [busyAlert, setBusyAlert] = useState('')
-
-  const load = async () => {
-    setError('')
-    try {
-      const [dashboard, alertList] = await Promise.all([
-        api('/api/dashboard', { token }),
-        api('/api/alertes?jours=30', { token })
-      ])
-      setData(dashboard)
-      setAlerts(Array.isArray(alertList) ? alertList : [])
-    } catch (e) {
-      setError(friendlyError(e))
-    }
-  }
-
-  useEffect(() => { load() }, [token])
-
-  async function resolveAlert(alert) {
-    const observation = prompt('Observation de résolution', 'Action planifiée / problème traité')
-    if (observation === null) return
-    setBusyAlert(alert.id)
-    try {
-      await api(`/api/alertes/${encodeURIComponent(alert.id)}/resoudre`, { method: 'PATCH', token, body: { observation } })
-      await load()
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setBusyAlert('')
-    }
-  }
-
-  const chart = data?.repartitionParEtat || {}
-  return (
-    <div className="content">
-      <div className="page-intro lab-intro">
-        <div>
-          <p className="eyebrow">TABLEAU DE BORD</p>
-          <h1>Bonjour, {username}</h1>
-          <p className="muted">Une vue claire du parc métrologique, des échéances et de la traçabilité qualité.</p>
-        </div>
-        <div className="intro-actions">
-          <button className="secondary" onClick={() => setPage('alertes')}>Voir les alertes</button>
-          <button className="primary" onClick={() => setPage('equipements')}>+ Nouvel équipement</button>
-        </div>
-      </div>
-      {error ? <Notice text={error} /> : !data ? <Loader /> : (
-        <>
-          <div className="stats">
-            <Stat label="Équipements" value={data.totalEquipements} icon="⌘" tone="blue" />
-            <Stat label="En service" value={(chart.DISPONIBLE || 0) + (chart.EN_UTILISATION || 0)} icon="✓" tone="green" />
-            <Stat label="Alertes actives" value={data.nombreAlertesActives ?? alerts.length} icon="!" tone="amber" />
-            <Stat label="Laboratoires" value={data.totalLabosEtalonnage ?? data.totalPersonnel} icon="◌" tone="purple" />
-          </div>
-          <div className="dashboard-grid">
-            <section className="panel status-panel">
-              <div className="panel-head">
-                <div><h3>État des équipements</h3><p>Répartition du parc du laboratoire</p></div>
-                <button className="link" onClick={() => setPage('equipements')}>Voir tout →</button>
-              </div>
-              <div className="distribution">
-                {states.filter(s => chart[s]).map(s => (
-                  <div key={s}>
-                    <div><Badge state={s} /><b>{chart[s]}</b></div>
-                    <span style={{ width: `${Math.max(8, chart[s] / Math.max(1, data.totalEquipements) * 100)}%` }} />
-                  </div>
-                ))}
-                {!Object.keys(chart).length && <Empty text="Aucun équipement enregistré" />}
-              </div>
-            </section>
-            <section className="panel alerts-panel">
-              <div className="panel-head">
-                <div><h3>Échéances à surveiller</h3><p>Alertes actives dans les 30 prochains jours</p></div>
-                <button className="link" onClick={() => setPage('alertes')}>Tout voir →</button>
-              </div>
-              {alerts.slice(0, 4).map((a, i) => {
-                const risk = getAlertRisk(a.joursRestants)
-                return (
-                  <div className="alert-line actionable" key={a.id || i}>
-                    <span className="alert-dot" style={{ backgroundColor: risk.bg, color: risk.color }}>!</span>
-                    <div><b>{a.equipementDesignation}</b><small>{a.details}</small></div>
-                    <time style={{ color: risk.color }}>{a.joursRestants} j</time>
-                    {a.id && <button className="secondary small" disabled={busyAlert === a.id} onClick={() => resolveAlert(a)}>Résolu</button>}
-                  </div>
-                )
-              })}
-              {!alerts.length && <Empty text="Aucune échéance proche" />}
-            </section>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
+function Dashboard({ token, username, setPage }) { const [data,setData]=useState(null),[alerts,setAlerts]=useState([]),[error,setError]=useState(''); useEffect(()=>{Promise.all([api('/api/dashboard',{token}),api('/api/alertes?jours=30',{token})]).then(([d,a])=>{setData(d);setAlerts(a)}).catch(e=>setError(friendlyError(e)))},[token]); const chart = data?.repartitionParEtat || {}; return <div className="content"><div className="page-intro"><div><p className="eyebrow">TABLEAU DE BORD</p><h1>Bonjour, bienvenue {username}</h1><p className="muted">Voici un aperçu de l’activité de votre laboratoire.</p></div><button className="primary" onClick={()=>setPage('equipements')}>+ Nouvel équipement</button></div>{error?<Notice text={error}/>:!data?<Loader/>:<><div className="stats"><Stat label="Équipements" value={data.totalEquipements} icon="⌘" tone="blue"/><Stat label="En service" value={(chart.DISPONIBLE||0)+(chart.EN_UTILISATION||0)} icon="✓" tone="green"/><Stat label="Alertes actives" value={data.nombreAlertesActives} icon="!" tone="amber"/><Stat label="Personnel" value={data.totalPersonnel} icon="♙" tone="purple"/></div><div className="dashboard-grid"><section className="panel status-panel"><div className="panel-head"><div><h3>État des équipements</h3><p>Répartition de votre parc</p></div><button className="link" onClick={()=>setPage('equipements')}>Voir tout →</button></div><div className="distribution">{states.filter(s=>chart[s]).map(s=><div key={s}><div><Badge state={s}/><b>{chart[s]}</b></div><span style={{width:`${Math.max(8,chart[s]/Math.max(1,data.totalEquipements)*100)}%`}}></span></div>)}{!Object.keys(chart).length&&<Empty text="Aucun équipement enregistré"/>}</div></section><section className="panel alerts-panel"><div className="panel-head"><div><h3>Échéances à surveiller</h3><p>Dans les 30 prochains jours</p></div><button className="link" onClick={()=>setPage('alertes')}>Tout voir →</button></div>{alerts.slice(0,4).map((a,i)=><div className="alert-line" key={i}><span className="alert-dot">!</span><div><b>{a.equipementDesignation}</b><small>{a.details}</small></div><time>{a.joursRestants} j</time></div>)}{!alerts.length&&<Empty text="Aucune échéance proche"/>}</section></div></>}</div> }
 function Stat({label,value,icon,tone}) {return <div className="stat"><span className={`stat-icon ${tone}`}>{icon}</span><div><small>{label}</small><strong>{value}</strong></div></div>}
 function Loader(){return <div className="loader">Chargement des données…</div>}; function Empty({text}){return <div className="empty">{text}</div>}; function Notice({text}){return <div className="notice">{text}</div>}
 
@@ -555,13 +402,8 @@ function Equipments({token}) {
     if (!confirm("Voulez-vous vraiment changer l'état de cet équipement ?")) return;
     try{await api(`/api/equipements/${id}/etat?etat=${etat}`,{method:'PATCH',token});load()}catch(e){setError(friendlyError(e))}
   } 
-
-  async function removeEquipment(e){
-    if (!confirm(`Voulez-vous vraiment supprimer définitivement l'équipement "${e.designation}" ?\n\nCette action est irréversible : l'équipement et tout son historique lié (interventions, étalonnages, documents, contrats de maintenance, accessoires) seront effacés.`)) return;
-    try{await api(`/api/equipements/${e.id}/definitif`,{method:'DELETE',token});setSelected(null);load()}catch(err){setError(friendlyError(err))}
-  }
   
-  return <div className="content"><div className="page-intro"><div><p className="eyebrow">PARC MÉTROLOGIQUE</p><h1>Équipements</h1><p className="muted">Gérez et suivez tous les équipements de votre laboratoire.</p></div><button className="primary" onClick={()=>setEditing(emptyEquipment)}>+ Ajouter un équipement</button></div><div className="toolbar"><div className="search" style={{ width: '420px' }}>⌕<input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher (désignation, marque, modèle, n° série, emplacement...)"/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="">Tous les états</option>{states.map(s=><option value={s} key={s}>{stateLabels[s]}</option>)}</select><button className="secondary" onClick={() => exportToCSV(items)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>📥 Exporter CSV</button><span className="result-count">{items.length} résultat{items.length!==1?'s':''}</span></div>{error&&<Notice text={error}/>}<div className="panel table-wrap">{loading?<Loader/>:<table><thead><tr><th>ÉQUIPEMENT</th><th>IDENTIFIANT</th><th>EMPLACEMENT</th><th>ÉTAT</th><th>PROCHAINE ÉCHÉANCE</th><th></th></tr></thead><tbody>{items.map(e=><tr key={e.id} onClick={()=>setSelected(e)}><td><div className="equipment-cell"><span className="equipment-icon">⌘</span><div><b>{e.designation}</b><small>{e.marque} · {e.modele}</small></div></div></td><td><code>{e.codeIdentifiant}</code></td><td>{e.codeEmplacement||'—'}</td><td><select value={e.etat} onChange={ev=>{ev.stopPropagation(); changeState(e.id, ev.target.value);}} onClick={ev=>ev.stopPropagation()} style={{ ...getEtatStyle(e.etat), border:'none', borderRadius:'5px', padding:'6px 12px', fontSize:'11px', fontWeight:'bold', cursor:'pointer', outline:'none', appearance:'none', textAlign:'center', display:'inline-block' }}>{states.map(s=><option key={s} value={s} style={{ color:'#1c2c3f', background:'white', fontWeight:'normal' }}>{stateLabels[s]}</option>)}</select></td><td>{e.garantieJusquAu?fmtDate(e.garantieJusquAu):'—'}</td><td><div style={{ display:'flex', gap:'4px', justifyContent:'flex-end' }}><IconButton title="Modifier l’équipement" onClick={ev=>{ev.stopPropagation();setEditing(e)}}>•••</IconButton><IconButton title="Supprimer l’équipement" onClick={ev=>{ev.stopPropagation();removeEquipment(e)}} style={{ color:'#b54745' }}><TrashIcon/></IconButton></div></td></tr>)}{!items.length&&<tr><td colSpan="6"><Empty text="Aucun équipement ne correspond à votre recherche."/></td></tr>}</tbody></table>}</div>{editing&&<EquipmentModal initial={editing} token={token} onClose={()=>setEditing(null)} onSaved={()=>{setEditing(null);load()}}/>}{selected&&<EquipmentDetail item={selected} token={token} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}} onDelete={removeEquipment}/>}</div> 
+  return <div className="content"><div className="page-intro"><div><p className="eyebrow">PARC MÉTROLOGIQUE</p><h1>Équipements</h1><p className="muted">Gérez et suivez tous les équipements de votre laboratoire.</p></div><button className="primary" onClick={()=>setEditing(emptyEquipment)}>+ Ajouter un équipement</button></div><div className="toolbar"><div className="search" style={{ width: '420px' }}>⌕<input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher (désignation, marque, modèle, n° série, emplacement...)"/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="">Tous les états</option>{states.map(s=><option value={s} key={s}>{stateLabels[s]}</option>)}</select><button className="secondary" onClick={() => exportToCSV(items)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>📥 Exporter CSV</button><span className="result-count">{items.length} résultat{items.length!==1?'s':''}</span></div>{error&&<Notice text={error}/>}<div className="panel table-wrap">{loading?<Loader/>:<table><thead><tr><th>ÉQUIPEMENT</th><th>IDENTIFIANT</th><th>EMPLACEMENT</th><th>ÉTAT</th><th>PROCHAINE ÉCHÉANCE</th><th></th></tr></thead><tbody>{items.map(e=><tr key={e.id} onClick={()=>setSelected(e)}><td><div className="equipment-cell"><span className="equipment-icon">⌘</span><div><b>{e.designation}</b><small>{e.marque} · {e.modele}</small></div></div></td><td><code>{e.codeIdentifiant}</code></td><td>{e.codeEmplacement||'—'}</td><td><select value={e.etat} onChange={ev=>{ev.stopPropagation(); changeState(e.id, ev.target.value);}} onClick={ev=>ev.stopPropagation()} style={{ ...getEtatStyle(e.etat), border:'none', borderRadius:'5px', padding:'6px 12px', fontSize:'11px', fontWeight:'bold', cursor:'pointer', outline:'none', appearance:'none', textAlign:'center', display:'inline-block' }}>{states.map(s=><option key={s} value={s} style={{ color:'#1c2c3f', background:'white', fontWeight:'normal' }}>{stateLabels[s]}</option>)}</select></td><td>{e.garantieJusquAu?fmtDate(e.garantieJusquAu):'—'}</td><td><IconButton title="Modifier l’équipement" onClick={ev=>{ev.stopPropagation();setEditing(e)}}>•••</IconButton></td></tr>)}{!items.length&&<tr><td colSpan="6"><Empty text="Aucun équipement ne correspond à votre recherche."/></td></tr>}</tbody></table>}</div>{editing&&<EquipmentModal initial={editing} token={token} onClose={()=>setEditing(null)} onSaved={()=>{setEditing(null);load()}}/>}{selected&&<EquipmentDetail item={selected} token={token} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null)}}/>}</div> 
 }
 
 function EquipmentModal({initial,token,onClose,onSaved}) {
@@ -581,7 +423,7 @@ function EquipmentModal({initial,token,onClose,onSaved}) {
   return <Modal title={initial.id?'Modifier l’équipement':'Nouvel équipement'} onClose={onClose}><form className="form-grid" onSubmit={submit}>{fields.map(([k,label,type])=><label key={k}>{label}<input type={type||'text'} required={label.includes('*')} value={form[k]||''} onChange={e=>update(k,e.target.value)}/></label>)}<label>Date d’acquisition *<input type="date" required value={form.dateAcquisition||''} onChange={e=>update('dateAcquisition',e.target.value)}/></label><label>Mise en service<input type="date" value={form.dateMiseEnService||''} onChange={e=>update('dateMiseEnService',e.target.value)}/></label><label>Périodicité *<input type="number" min="1" required value={form.periodiciteValeur} onChange={e=>update('periodiciteValeur',e.target.value)}/></label><label>Unité<select value={form.periodiciteUnite} onChange={e=>update('periodiciteUnite',e.target.value)}><option value="MOIS">Mois</option><option value="ANNEE">Année</option></select></label><label>Garantie jusqu’au<input type="date" value={form.garantieJusquAu||''} onChange={e=>update('garantieJusquAu',e.target.value)}/></label><label className="full">Observations<textarea value={form.observations||''} onChange={e=>update('observations',e.target.value)} rows="3"/></label>{error&&<div className="error full">{error}</div>}<div className="modal-actions full"><button type="button" className="secondary" onClick={onClose}>Annuler</button><button className="primary" disabled={busy}>{busy?'Enregistrement…':'Enregistrer'}</button></div></form></Modal>
 }
 
-function EquipmentDetail({item,token,onClose,onEdit,onDelete}){
+function EquipmentDetail({item,token,onClose,onEdit}){
   const [history,setHistory]=useState([]),[documents,setDocuments]=useState([]),[tab,setTab]=useState('history');
   const [uploadFile, setUploadFile] = useState(null), [docType, setUploadType] = useState('RAPPORT'), [uploadBusy, setUploadBusy] = useState(false), [uploadError, setUploadError] = useState('');
 
@@ -691,7 +533,6 @@ function EquipmentDetail({item,token,onClose,onEdit,onDelete}){
       )}
       <div className="modal-actions">
         <button className="secondary" onClick={download}>⇩ Fiche de vie</button>
-        <button className="secondary" onClick={()=>onDelete(item)} style={{ color:'#b54745', borderColor:'#fce9e9', display:'flex', alignItems:'center', gap:'6px' }}><TrashIcon/> Supprimer</button>
         <button className="primary" onClick={onEdit}>Modifier</button>
       </div>
     </Modal>
@@ -701,11 +542,18 @@ function EquipmentDetail({item,token,onClose,onEdit,onDelete}){
 function ResourceList({token,kind}) {
   const config={
     laboratoires:{
-      title:'Référentiel des laboratoires',
-      eyebrow:'RÉFÉRENTIEL UNIQUE',
-      desc:'Centralisez ici les laboratoires, prestataires et contacts de référence afin d’éviter la double saisie.',
+      title:'Laboratoires d’étalonnage',
+      eyebrow:'RÉFÉRENTIEL',
+      desc:'Gérez les contacts et laboratoires d’étalonnage externes.',
       endpoint:'/api/labos-etalonnage',
-      fields:[['nom','Nom du laboratoire / prestataire *'],['contactNom','Nom du contact'],['contactPrenom','Prénom du contact'],['contactEmail','Email','email'],['contactTelephone','Téléphone']]
+      fields:[['nom','Nom du laboratoire *'],['contactNom','Nom du contact'],['contactPrenom','Prénom du contact'],['contactEmail','Email','email'],['contactTelephone','Téléphone']]
+    },
+    personnel:{
+      title:'Personnel',
+      eyebrow:'ÉQUIPE',
+      desc:'Gérez les agents et techniciens qui travaillent dans le laboratoire.',
+      endpoint:'/api/personnel',
+      fields:[['nom','Nom *'],['prenom','Prénom'],['email','Email','email'],['telephone','Téléphone']]
     }
   }[kind];
   
@@ -749,7 +597,7 @@ function ResourceList({token,kind}) {
         <IconButton title="Supprimer" onClick={()=>remove(r.id)}>×</IconButton>
       </article>
     )
-  })}{!rows.length&&<div className="panel"><Empty text="Aucun élément enregistré."/></div>}</div>{form&&<Modal title="Ajouter un laboratoire / prestataire" onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}>{config.fields.map(([key,label,type])=><label key={key}>{label}<input required={label.includes('*')} type={type||'text'} value={form[key]||''} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}<div className="modal-actions full"><button type="button" className="secondary" onClick={()=>setForm(null)}>Annuler</button><button className="primary">Enregistrer</button></div></form></Modal>}</div>
+  })}{!rows.length&&<div className="panel"><Empty text="Aucun élément enregistré."/></div>}</div>{form&&<Modal title={`Ajouter ${kind==='personnel'?'un membre':'un laboratoire'}`} onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}>{config.fields.map(([key,label,type])=><label key={key}>{label}<input required={label.includes('*')} type={type||'text'} value={form[key]||''} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}<div className="modal-actions full"><button type="button" className="secondary" onClick={()=>setForm(null)}>Annuler</button><button className="primary">Enregistrer</button></div></form></Modal>}</div>
 }
 
 function getAlertRisk(jours) {
@@ -758,107 +606,44 @@ function getAlertRisk(jours) {
   return { color: '#16835d', bg: '#e0f5ea', label: 'Risque Faible' }
 }
 
-function Alerts({ token }) {
-  const [alerts, setAlerts] = useState([])
-  const [days, setDays] = useState(30)
-  const [includeResolved, setIncludeResolved] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [busyId, setBusyId] = useState('')
-
-  const load = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const list = await api(`/api/alertes?jours=${days}&inclureResolues=${includeResolved}`, { token })
-      setAlerts(Array.isArray(list) ? list : [])
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() }, [token, days, includeResolved])
-
-  async function resolve(alert) {
-    const observation = prompt('Observation / action réalisée', alert.observationResolution || 'Action planifiée / problème traité')
-    if (observation === null) return
-    setBusyId(alert.id)
-    try {
-      await api(`/api/alertes/${encodeURIComponent(alert.id)}/resoudre`, { method: 'PATCH', token, body: { observation } })
-      await load()
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setBusyId('')
-    }
-  }
-
-  async function reopen(alert) {
-    if (!confirm('Rouvrir cette notification ?')) return
-    setBusyId(alert.id)
-    try {
-      await api(`/api/alertes/${encodeURIComponent(alert.id)}/resolution`, { method: 'DELETE', token })
-      await load()
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setBusyId('')
-    }
-  }
-
+function Alerts({token}){
+  const[alerts,setAlerts]=useState([]),[days,setDays]=useState(30),[error,setError]=useState('');
+  useEffect(()=>api(`/api/alertes?jours=${days}`,{token}).then(setAlerts).catch(e=>setError(friendlyError(e))),[token,days]);
   return (
     <div className="content">
-      <div className="page-intro lab-intro">
+      <div className="page-intro">
         <div>
           <p className="eyebrow">SUIVI DES ÉCHÉANCES</p>
           <h1>Alertes</h1>
-          <p className="muted">Anticipez les opérations, ajoutez une observation et marquez la notification comme résolue après traitement.</p>
+          <p className="muted">Anticipez les opérations qui nécessitent votre attention.</p>
         </div>
-        <div className="alert-filters">
-          <select value={days} onChange={e => setDays(e.target.value)}>
-            <option value="15">15 prochains jours</option>
-            <option value="30">30 prochains jours</option>
-            <option value="60">60 prochains jours</option>
-            <option value="120">120 prochains jours</option>
-          </select>
-          <label className="switch-line">
-            <input type="checkbox" checked={includeResolved} onChange={e => setIncludeResolved(e.target.checked)} />
-            Afficher les résolues
-          </label>
-        </div>
+        <select value={days} onChange={e=>setDays(e.target.value)}>
+          <option value="15">15 prochains jours</option>
+          <option value="30">30 prochains jours</option>
+          <option value="60">60 prochains jours</option>
+        </select>
       </div>
-      {error && <Notice text={error} />}
-      <div className="panel alert-list improved-alerts">
-        {loading ? <Loader /> : alerts.map((a, i) => {
-          const risk = a.resolue ? { color: '#16835d', bg: '#e0f5ea', label: 'Résolue' } : getAlertRisk(a.joursRestants)
+      {error&&<Notice text={error}/>}
+      <div className="panel alert-list">
+        {alerts.map((a,i)=>{
+          const risk = getAlertRisk(a.joursRestants);
           return (
-            <div className={`alert-row ${a.resolue ? 'is-resolved' : ''}`} key={a.id || i}>
-              <span className="warning-icon" style={{ backgroundColor: risk.bg, color: risk.color }}>{a.resolue ? '✓' : '!'}</span>
-              <div className="alert-main">
+            <div className="alert-row" key={i}>
+              <span className="warning-icon" style={{ backgroundColor: risk.bg, color: risk.color }}>!</span>
+              <div>
                 <p className="eyebrow" style={{ color: risk.color }}>{a.type} · <span style={{ fontWeight: 'normal', textTransform: 'none' }}>{risk.label}</span></p>
                 <h3>{a.equipementDesignation} <code>{a.equipementCodeIdentifiant}</code></h3>
                 <p className="muted">{a.details}</p>
-                {a.observationResolution && <p className="resolution-note"><b>Observation :</b> {a.observationResolution}</p>}
-                {a.resolvedBy && <small className="resolved-meta">Résolue par {a.resolvedBy}{a.resolvedAt ? ` · ${new Intl.DateTimeFormat('fr-FR').format(new Date(a.resolvedAt))}` : ''}</small>}
               </div>
               <div className="alert-date">
                 <b style={{ color: risk.color }}>{a.joursRestants}</b>
                 <small>jours restants</small>
                 <span>{fmtDate(a.dateEcheance)}</span>
               </div>
-              <div className="alert-actions">
-                {a.resolue ? (
-                  <button className="secondary small" disabled={busyId === a.id} onClick={() => reopen(a)}>Rouvrir</button>
-                ) : (
-                  <button className="primary small" disabled={busyId === a.id || !a.id} onClick={() => resolve(a)}>Marquer résolu</button>
-                )}
-              </div>
             </div>
           )
         })}
-        {!loading && !alerts.length && <Empty text="Aucune alerte pour cette période." />}
+        {!alerts.length&&<Empty text="Aucune alerte pour cette période."/>}
       </div>
     </div>
   )
@@ -1132,28 +917,19 @@ function DemandesPrestation({ token }) {
   )
 }
 
-function Users({token, currentUsername, onSelfDelete, onSelfStatusChange}){
+function Users({token}){
   const[rows,setRows]=useState([]),[error,setError]=useState('');
   const load=()=>api('/api/users',{token}).then(setRows).catch(e=>setError(friendlyError(e)));
   useEffect(load,[token]);
   
   async function toggle(u){
-    try{
-      await api(`/api/users/${u.id}/${u.enabled?'desactiver':'activer'}`,{method:'PATCH',token});
-      load();
-      if (u.username === currentUsername) onSelfStatusChange?.();
-    }catch(e){setError(friendlyError(e))}
+    try{await api(`/api/users/${u.id}/${u.enabled?'desactiver':'activer'}`,{method:'PATCH',token});load()}catch(e){setError(friendlyError(e))}
   }
   
-  async function removeUser(u) {
+  async function removeUser(id) {
     if (!confirm("Voulez-vous vraiment supprimer définitivement cet utilisateur ?")) return;
     try {
-      await api(`/api/users/${u.id}`, { method: 'DELETE', token });
-      if (u.username === currentUsername) {
-        // L'utilisateur vient de supprimer son propre compte : on le déconnecte immédiatement.
-        onSelfDelete();
-        return;
-      }
+      await api(`/api/users/${id}`, { method: 'DELETE', token });
       load();
     } catch (e) {
       setError(friendlyError(e));
@@ -1191,7 +967,7 @@ function Users({token, currentUsername, onSelfDelete, onSelfStatusChange}){
                 <td>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="secondary small" onClick={()=>toggle(u)}>{u.enabled?'Désactiver':'Activer'}</button>
-                    <button className="secondary small" onClick={()=>removeUser(u)} style={{ background: '#fff0ef', color: '#b54745', borderColor: '#fce9e9' }}>Supprimer</button>
+                    <button className="secondary small" onClick={()=>removeUser(u.id)} style={{ background: '#fff0ef', color: '#b54745', borderColor: '#fce9e9' }}>Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -1205,6 +981,41 @@ function Users({token, currentUsername, onSelfDelete, onSelfStatusChange}){
 
 function Placeholder({title}){return <div className="content"><div className="page-intro"><div><p className="eyebrow">GESTION</p><h1>{title}</h1><p className="muted">Cette section est prête à être reliée aux prochaines opérations métier.</p></div></div><div className="panel"><Empty text="Aucune donnée à afficher pour le moment."/></div></div>}
 function Modal({title,onClose,children,wide}) {return <div className="modal-backdrop" onMouseDown={onClose}><section className={`modal ${wide?'wide-modal':''}`} onMouseDown={e=>e.stopPropagation()}><div className="modal-title"><h2>{title}</h2><IconButton title="Fermer" onClick={onClose}>×</IconButton></div>{children}</section></div>}
+
+function Shell({ user, page, setPage, children, onLogout, onAvatarClick, alertCount }) {
+  const admin = user.role === 'ADMINISTRATEUR';
+  return (
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '10px 0', width: '100%' }}>
+          <img src="/logo_cert.png" alt="Logo CERT" style={{ height: '120px', width: 'auto', objectFit: 'contain' }} />
+          <span style={{ fontSize: '15px', letterSpacing: '0.5px', textAlign: 'center', fontWeight: 'bold' }}>CERT <b>CALIBRATION HUB</b></span>
+        </div>
+        <nav>
+          {nav.map(([id,icon,label])=><button key={id} className={page===id?'active':''} onClick={()=>setPage(id)}><i>{icon}</i>{label}</button>)}
+          {admin && <><div className="nav-label">ADMINISTRATION</div><button className={page==='utilisateurs'?'active':''} onClick={()=>setPage('utilisateurs')}><i>♧</i>Utilisateurs</button></>}
+        </nav>
+        <div className="sidebar-bottom">
+          <button className="logout" onClick={onLogout} style={{ marginTop: '20px', width: '100%' }}>⇥ Déconnexion</button>
+        </div>
+      </aside>
+      <section className="workspace">
+        <header>
+          <div className="crumb">CERT CALIBRATION HUB <span>/</span> {nav.find(n=>n[0]===page)?.[2] || 'Administration'}</div>
+          <div className="header-actions">
+            <span className="date">{new Intl.DateTimeFormat('fr-FR',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}</span>
+            <button className="bell" onClick={() => setPage('alertes')} title={`${alertCount || 0} alertes actives`}>
+              <BellIcon />
+              {alertCount > 0 && <span className="bell-badge">{alertCount}</span>}
+            </button>
+            <div className="avatar" onClick={onAvatarClick} style={{ cursor: 'pointer' }}>{user.username?.slice(0,2).toUpperCase()}</div>
+          </div>
+        </header>
+        {children}
+      </section>
+    </div>
+  )
+}
 
 function App(){
   const [auth, setAuth] = useState(() => {
@@ -1221,31 +1032,6 @@ function App(){
   const [authScreen, setAuthScreen] = useState('login')
   const [showProfile, setShowProfile] = useState(false)
   const [alertCount, setAlertCount] = useState(0)
-  const [authNotice, setAuthNotice] = useState(null)
-  const [profileVersion, setProfileVersion] = useState(0)
-  const [photoUrl, setPhotoUrl] = useState(null)
-  const [photoVersion, setPhotoVersion] = useState(0)
-
-  // Si on arrive depuis le lien de verification d'email (redirection backend
-  // /api/auth/verify -> frontend?token=...), on se connecte automatiquement
-  // sans repasser par le formulaire de connexion.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const token = params.get('token')
-    const username = params.get('username')
-    const role = params.get('role')
-    const verificationError = params.get('verificationError')
-
-    if (token && username && role) {
-      login({ token, username, role })
-      setAuthNotice({ type: 'success', text: 'Compte activé avec succès. Bienvenue !' })
-      window.history.replaceState({}, '', window.location.pathname)
-    } else if (verificationError) {
-      setAuthNotice({ type: 'error', text: verificationError })
-      window.history.replaceState({}, '', window.location.pathname)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     if (auth?.token) {
@@ -1255,24 +1041,13 @@ function App(){
     }
   }, [auth, page])
 
-  useEffect(() => {
-    if (auth?.token) {
-      api('/api/auth/me', { token: auth.token })
-        .then(p => setPhotoUrl(p.photoUrl || null))
-        .catch(() => {})
-    } else {
-      setPhotoUrl(null)
-    }
-  }, [auth])
-
   function login(data){localStorage.setItem('cert-auth',JSON.stringify(data));setAuth(data)}
   function logout(){localStorage.removeItem('cert-auth');setAuth(null)}
-  function handlePhotoChanged(newPhotoUrl){setPhotoUrl(newPhotoUrl);setPhotoVersion(v=>v+1)}
 
   if(!auth?.token){
     if(authScreen==='register'){return <Register onGoToLogin={()=>setAuthScreen('login')}/>}
     if(authScreen==='forgot-password'){return <ForgotPassword onGoToLogin={()=>setAuthScreen('login')}/>}
-    return <Login onLogin={login} onGoToRegister={()=>setAuthScreen('register')} onGoToForgotPassword={()=>setAuthScreen('forgot-password')} notice={authNotice}/>
+    return <Login onLogin={login} onGoToRegister={()=>setAuthScreen('register')} onGoToForgotPassword={()=>setAuthScreen('forgot-password')}/>
   }
 
   let view={
@@ -1280,19 +1055,15 @@ function App(){
     equipements:<Equipments token={auth.token}/>,
     alertes:<Alerts token={auth.token}/>,
     laboratoires:<ResourceList token={auth.token} kind="laboratoires"/>,
-    utilisateurs:<Users token={auth.token} currentUsername={auth.username} onSelfDelete={logout} onSelfStatusChange={()=>setProfileVersion(v=>v+1)}/>,
+    personnel:<ResourceList token={auth.token} kind="personnel"/>,
+    utilisateurs:<Users token={auth.token}/>,
     demandes:<DemandesPrestation token={auth.token}/>
   }[page]||<Dashboard token={auth.token} username={auth.username} setPage={setPage}/>;
 
   return (
     <>
-      {showProfile && <ProfileModal token={auth.token} onClose={()=>setShowProfile(false)} onLogout={logout} refreshKey={profileVersion} onPhotoChanged={handlePhotoChanged}/>}
-      <Shell user={auth} page={page} setPage={setPage} onLogout={logout} onAvatarClick={()=>setShowProfile(true)} alertCount={alertCount} avatarSrc={photoUrl ? `${baseUrl}${photoUrl}?v=${photoVersion}` : null}>
-        {authNotice?.type === 'success' && (
-          <div className="success-banner" onClick={() => setAuthNotice(null)}>
-            {authNotice.text} <small>(cliquer pour masquer)</small>
-          </div>
-        )}
+      {showProfile && <ProfileModal token={auth.token} onClose={()=>setShowProfile(false)} onLogout={logout} />}
+      <Shell user={auth} page={page} setPage={setPage} onLogout={logout} onAvatarClick={()=>setShowProfile(true)} alertCount={alertCount}>
         {view}
       </Shell>
     </>
