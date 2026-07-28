@@ -1,0 +1,12 @@
+﻿# Backend
+calibration-hub/target/
+calibration-hub/.idea/
+*.iml
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Général
+.env
+.DS_Store
