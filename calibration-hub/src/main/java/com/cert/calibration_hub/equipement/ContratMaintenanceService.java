@@ -11,11 +11,14 @@ public class ContratMaintenanceService {
 
     private final ContratMaintenanceRepository contratMaintenanceRepository;
     private final EquipementRepository equipementRepository;
+    private final LaboEtalonnageRepository laboEtalonnageRepository;
 
     public ContratMaintenanceService(ContratMaintenanceRepository contratMaintenanceRepository,
-                                     EquipementRepository equipementRepository) {
+                                     EquipementRepository equipementRepository,
+                                     LaboEtalonnageRepository laboEtalonnageRepository) {
         this.contratMaintenanceRepository = contratMaintenanceRepository;
         this.equipementRepository = equipementRepository;
+        this.laboEtalonnageRepository = laboEtalonnageRepository;
     }
 
     public ContratMaintenanceResponseDTO creer(ContratMaintenanceRequestDTO dto) {
@@ -25,6 +28,11 @@ public class ContratMaintenanceService {
         ContratMaintenance contrat = new ContratMaintenance();
         contrat.setEquipement(equipement);
         contrat.setPrestataire(dto.prestataire());
+        if (dto.laboEtalonnageId() != null) {
+            LaboEtalonnage labo = laboEtalonnageRepository.findById(dto.laboEtalonnageId())
+                    .orElseThrow(() -> new LaboEtalonnageNotFoundException(dto.laboEtalonnageId()));
+            contrat.setLaboEtalonnage(labo);
+        }
         contrat.setDateDebut(dto.dateDebut());
         contrat.setDateFin(dto.dateFin());
         contrat.setPeriodeValeur(dto.periodeValeur());

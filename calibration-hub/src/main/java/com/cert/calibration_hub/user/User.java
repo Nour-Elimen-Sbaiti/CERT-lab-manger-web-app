@@ -42,6 +42,12 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "photo_path")
+    private String photoPath;
+
+    @Column(name = "photo_content_type", length = 100)
+    private String photoContentType;
+
     // --- Constructeurs ---
 
     public User() {
@@ -136,5 +142,21 @@ public class User {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getPhotoPath() {
+        return photoPath;
+    }
+
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = photoPath;
+    }
+
+    public String getPhotoContentType() {
+        return photoContentType;
+    }
+
+    public void setPhotoContentType(String photoContentType) {
+        this.photoContentType = photoContentType;
     }
 }

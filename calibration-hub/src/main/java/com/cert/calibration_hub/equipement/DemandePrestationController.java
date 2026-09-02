@@ -27,14 +27,36 @@ public class DemandePrestationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(demandePrestationService.creer(dto));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<DemandePrestationResponseDTO> modifier(@PathVariable Long id, @Valid @RequestBody DemandePrestationRequestDTO dto) {
+        return ResponseEntity.ok(demandePrestationService.modifier(id, dto));
+    }
+
     @GetMapping
     public ResponseEntity<List<DemandePrestationResponseDTO>> lister() {
         return ResponseEntity.ok(demandePrestationService.lister());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<DemandePrestationResponseDTO> trouverParId(@PathVariable Long id) {
+        return ResponseEntity.ok(demandePrestationService.trouverParId(id));
+    }
+
     @GetMapping("/etalonnage/{etalonnageId}")
     public ResponseEntity<DemandePrestationResponseDTO> trouverParEtalonnage(@PathVariable Long etalonnageId) {
         return ResponseEntity.ok(demandePrestationService.trouverParEtalonnage(etalonnageId));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DemandePrestationResponseDTO> modifier(@PathVariable Long id,
+                                                                 @Valid @RequestBody DemandePrestationRequestDTO dto) {
+        return ResponseEntity.ok(demandePrestationService.modifier(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
+        demandePrestationService.supprimer(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/pdf")

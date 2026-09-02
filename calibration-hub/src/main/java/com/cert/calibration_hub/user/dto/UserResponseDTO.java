@@ -13,5 +13,6 @@ public record UserResponseDTO(
         Role role,
         boolean enabled,
         boolean emailVerified,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String photoUrl
 ) {}

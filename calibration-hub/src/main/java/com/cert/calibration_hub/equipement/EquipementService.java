@@ -2,10 +2,16 @@ package com.cert.calibration_hub.equipement;
 
 import com.cert.calibration_hub.equipement.dto.EquipementRequestDTO;
 import com.cert.calibration_hub.equipement.dto.EquipementResponseDTO;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -14,13 +20,37 @@ public class EquipementService {
     private final EquipementRepository equipementRepository;
     private final PersonnelRepository personnelRepository;
     private final LaboEtalonnageRepository laboEtalonnageRepository;
+    private final DocumentRepository documentRepository;
+    private final InterventionRepository interventionRepository;
+    private final EtalonnageRepository etalonnageRepository;
+    private final DemandePrestationRepository demandePrestationRepository;
+    private final ContratMaintenanceRepository contratMaintenanceRepository;
+    private final AccessoireRepository accessoireRepository;
+    private final AlerteResolueRepository alerteResolueRepository;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     public EquipementService(EquipementRepository equipementRepository,
                              PersonnelRepository personnelRepository,
-                             LaboEtalonnageRepository laboEtalonnageRepository) {
+                             LaboEtalonnageRepository laboEtalonnageRepository,
+                             DocumentRepository documentRepository,
+                             InterventionRepository interventionRepository,
+                             EtalonnageRepository etalonnageRepository,
+                             DemandePrestationRepository demandePrestationRepository,
+                             ContratMaintenanceRepository contratMaintenanceRepository,
+                             AccessoireRepository accessoireRepository,
+                             AlerteResolueRepository alerteResolueRepository) {
         this.equipementRepository = equipementRepository;
         this.personnelRepository = personnelRepository;
         this.laboEtalonnageRepository = laboEtalonnageRepository;
+        this.documentRepository = documentRepository;
+        this.interventionRepository = interventionRepository;
+        this.etalonnageRepository = etalonnageRepository;
+        this.demandePrestationRepository = demandePrestationRepository;
+        this.contratMaintenanceRepository = contratMaintenanceRepository;
+        this.accessoireRepository = accessoireRepository;
+        this.alerteResolueRepository = alerteResolueRepository;
     }
 
     public List<EquipementResponseDTO> findAll() {
@@ -36,7 +66,7 @@ public class EquipementService {
     }
 
     public List<EquipementResponseDTO> search(String motCle) {
-        return equipementRepository.findByDesignationContainingIgnoreCase(motCle)
+        return equipementRepository.searchMultiField(motCle)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -70,6 +100,70 @@ public class EquipementService {
         e.setEtat(EtatEquipement.REFORME);
         e.setDateReforme(LocalDate.now());
         equipementRepository.save(e);
+    }
+
+    /**
+     * Supprime définitivement l'équipement et TOUT son historique lié
+     * (documents, interventions, étalonnages, demandes de prestation,
+     * contrats de maintenance, accessoires, alertes résolues), dans le bon
+     * ordre pour ne jamais violer une contrainte de clé étrangère.
+     */
+    @Transactional
+    public void supprimerDefinitivement(Long id) {
+        Equipement e = getOrThrow(id);
+
+        // 1) Documents rattachés à l'équipement (doivent partir avant les
+        //    interventions / contrats qu'ils référencent).
+        documentRepository.deleteAll(documentRepository.findByEquipementId(id));
+
+        // 2) Interventions : chacune peut avoir un étalonnage, qui peut
+        //    lui-même avoir une demande de prestation.
+        List<Intervention> interventions =
+                interventionRepository.findByEquipementIdOrderByDateInterventionDesc(id);
+        for (Intervention intervention : interventions) {
+            etalonnageRepository.findByInterventionId(intervention.getId()).ifPresent(etalonnage -> {
+                demandePrestationRepository.findByEtalonnageId(etalonnage.getId())
+                        .ifPresent(demandePrestationRepository::delete);
+                etalonnageRepository.delete(etalonnage);
+            });
+        }
+        interventionRepository.deleteAll(interventions);
+
+        // 3) Contrats de maintenance
+        contratMaintenanceRepository.deleteAll(
+                contratMaintenanceRepository.findByEquipementIdOrderByDateFinDesc(id));
+
+        // 4) Accessoires
+        accessoireRepository.deleteAll(accessoireRepository.findByEquipementId(id));
+
+        // 5) Alertes déjà résolues concernant cet équipement
+        alerteResolueRepository.deleteAll(alerteResolueRepository.findByEquipementId(id));
+
+        // 6) Fichiers physiques uploadés (best effort : ne doit jamais faire
+        //    échouer la suppression en base si le disque a un souci).
+        supprimerDossierUploads(id);
+
+        // 7) L'équipement lui-même
+        equipementRepository.delete(e);
+    }
+
+    private void supprimerDossierUploads(Long equipementId) {
+        try {
+            Path dossier = Paths.get(uploadDir, "equipements", String.valueOf(equipementId));
+            if (Files.exists(dossier)) {
+                try (var flux = Files.walk(dossier)) {
+                    flux.sorted(Comparator.reverseOrder()).forEach(p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                        } catch (IOException ignored) {
+                            // best effort
+                        }
+                    });
+                }
+            }
+        } catch (IOException ignored) {
+            // best effort : la suppression des fichiers ne bloque jamais la suppression en base.
+        }
     }
 
     @Transactional

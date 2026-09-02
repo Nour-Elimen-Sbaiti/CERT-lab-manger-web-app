@@ -5,6 +5,7 @@ import com.cert.calibration_hub.equipement.InterventionInvalideException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,17 @@ public class GlobalExceptionHandler {
         Map<String, Object> corps = body("Données invalides.", HttpStatus.BAD_REQUEST);
         corps.put("erreurs", erreurs);
         return ResponseEntity.badRequest().body(corps);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(body("Méthode HTTP non supportée : " + ex.getMethod(), HttpStatus.METHOD_NOT_ALLOWED));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(Exception.class)

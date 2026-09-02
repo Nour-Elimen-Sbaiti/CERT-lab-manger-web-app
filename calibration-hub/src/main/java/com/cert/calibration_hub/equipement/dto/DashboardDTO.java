@@ -7,5 +7,6 @@ public record DashboardDTO(
         Map<String, Long> repartitionParEtat,
         long totalPersonnel,
         long totalAccessoires,
-        long nombreAlertesActives
+        long nombreAlertesActives,
+        long totalLabosEtalonnage
 ) {}

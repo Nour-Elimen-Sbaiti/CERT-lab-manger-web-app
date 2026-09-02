@@ -14,5 +14,15 @@ public interface EquipementRepository extends JpaRepository<Equipement, Long> {
     List<Equipement> findByEtat(EtatEquipement etat);
 
     List<Equipement> findByDesignationContainingIgnoreCase(String motCle);
+
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM Equipement e WHERE " +
+            "LOWER(e.designation) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            "LOWER(e.marque) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            "LOWER(e.modele) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            "LOWER(e.codeIdentifiant) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            "LOWER(e.numeroSerie) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            "LOWER(e.codeEmplacement) LIKE LOWER(CONCAT('%', :motCle, '%'))")
+    List<Equipement> searchMultiField(String motCle);
+
     List<Equipement> findByGarantieJusquAuLessThanEqual(LocalDate date);
 }

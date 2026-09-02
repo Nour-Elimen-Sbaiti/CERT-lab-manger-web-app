@@ -9,4 +9,6 @@ public interface LoginHistoryRepository extends JpaRepository<LoginHistory, Long
     List<LoginHistory> findByUserOrderByLoginTimeDesc(User user);
 
     List<LoginHistory> findByUserIdOrderByLoginTimeDesc(Long userId);
+
+    void deleteByUser(User user);
 }

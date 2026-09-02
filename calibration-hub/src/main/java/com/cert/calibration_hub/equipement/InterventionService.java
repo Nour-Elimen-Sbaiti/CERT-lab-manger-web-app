@@ -14,13 +14,16 @@ public class InterventionService {
     private final InterventionRepository interventionRepository;
     private final EquipementRepository equipementRepository;
     private final EtalonnageRepository etalonnageRepository;
+    private final LaboEtalonnageRepository laboEtalonnageRepository;
 
     public InterventionService(InterventionRepository interventionRepository,
                                EquipementRepository equipementRepository,
-                               EtalonnageRepository etalonnageRepository) {
+                               EtalonnageRepository etalonnageRepository,
+                               LaboEtalonnageRepository laboEtalonnageRepository) {
         this.interventionRepository = interventionRepository;
         this.equipementRepository = equipementRepository;
         this.etalonnageRepository = etalonnageRepository;
+        this.laboEtalonnageRepository = laboEtalonnageRepository;
     }
 
     @Transactional
@@ -46,6 +49,11 @@ public class InterventionService {
         intervention.setNumeroBonIntervention(dto.numeroBonIntervention());
         intervention.setIntervenantNom(dto.intervenantNom());
         intervention.setIntervenantSociete(dto.intervenantSociete());
+        if (dto.laboEtalonnageId() != null) {
+            LaboEtalonnage labo = laboEtalonnageRepository.findById(dto.laboEtalonnageId())
+                    .orElseThrow(() -> new LaboEtalonnageNotFoundException(dto.laboEtalonnageId()));
+            intervention.setLaboEtalonnage(labo);
+        }
 
         Intervention interventionSauvegardee = interventionRepository.save(intervention);
 

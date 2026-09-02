@@ -1,9 +1,15 @@
 package com.cert.calibration_hub.user;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
@@ -21,6 +27,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtService jwtService;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     public UserService(UserRepository userRepository,
                        VerificationTokenRepository verificationTokenRepository,
@@ -90,6 +99,33 @@ public class UserService {
 
         verificationTokenRepository.delete(verificationToken);
     }
+
+    /**
+     * Active le compte a partir du lien envoye par email, puis connecte
+     * directement l'utilisateur (genere un JWT), afin que le frontend
+     * puisse ouvrir la session sans repasser par le formulaire de connexion.
+     */
+    @Transactional
+    public LoginResponse activateAccountAndLogin(String token, String ipAddress) {
+        VerificationToken verificationToken = verificationTokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token de vérification invalide."));
+
+        if (verificationToken.isExpired()) {
+            throw new IllegalArgumentException("Ce lien d'activation a expiré.");
+        }
+
+        User user = verificationToken.getUser();
+        user.setEnabled(true);
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        verificationTokenRepository.delete(verificationToken);
+
+        loginHistoryRepository.save(new LoginHistory(user, ipAddress, true));
+
+        String jwt = jwtService.generateToken(user);
+        return new LoginResponse(jwt, user.getUsername(), user.getRole().name());
+    }
     @Transactional
     public LoginResponse login(String username, String rawPassword, String ipAddress) {
         User user = userRepository.findByUsername(username).orElse(null);
@@ -147,12 +183,32 @@ public class UserService {
         passwordResetTokenRepository.save(resetToken);
     }
 
+    @Transactional(readOnly = true)
+    public boolean isPasswordResetTokenValid(String token) {
+        return passwordResetTokenRepository.findByToken(token)
+                .map(PasswordResetToken::isValid)
+                .orElse(false);
+    }
+
     public List<UserResponseDTO> lister() {
         return userRepository.findAll().stream().map(this::versDTO).toList();
     }
 
+    public UserResponseDTO trouverParUsername(String username) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + username));
+        return versDTO(u);
+    }
+
     public UserResponseDTO trouverParId(Long id) {
         return versDTO(getOrThrow(id));
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponseDTO monProfil(String username) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + username));
+        return versDTO(u);
     }
 
     @Transactional
@@ -170,8 +226,72 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponseDTO updatePhoto(String username, MultipartFile fichier) {
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + username));
+
+        if (fichier == null || fichier.isEmpty()) {
+            throw new IllegalArgumentException("Aucun fichier reçu.");
+        }
+
+        String contentType = fichier.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Le fichier doit être une image.");
+        }
+        if (fichier.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("L'image ne doit pas dépasser 5 Mo.");
+        }
+
+        try {
+            Path dossierAvatars = Paths.get(uploadDir, "avatars");
+            Files.createDirectories(dossierAvatars);
+
+            String extension = "";
+            String nomOriginal = fichier.getOriginalFilename();
+            if (nomOriginal != null && nomOriginal.contains(".")) {
+                extension = nomOriginal.substring(nomOriginal.lastIndexOf('.'));
+            }
+            String nomFichier = "user_" + u.getId() + "_" + UUID.randomUUID() + extension;
+            Path cheminComplet = dossierAvatars.resolve(nomFichier);
+
+            String ancienChemin = u.getPhotoPath();
+
+            fichier.transferTo(cheminComplet);
+
+            u.setPhotoPath(cheminComplet.toString());
+            u.setPhotoContentType(contentType);
+            UserResponseDTO reponse = versDTO(userRepository.save(u));
+
+            if (ancienChemin != null) {
+                try {
+                    Files.deleteIfExists(Paths.get(ancienChemin));
+                } catch (IOException ignored) {
+                    // suppression best-effort de l'ancienne photo
+                }
+            }
+
+            return reponse;
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de l'enregistrement de la photo : " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserForPhoto(Long id) {
+        return getOrThrow(id);
+    }
+
+    @Transactional
     public void supprimer(Long id) {
         User u = getOrThrow(id);
+
+        // Un utilisateur peut être référencé par l'historique de connexion
+        // et par les tokens d'activation / réinitialisation. On supprime ces
+        // dépendances avant le compte pour éviter une violation de clé étrangère.
+        verificationTokenRepository.deleteByUser(u);
+        passwordResetTokenRepository.deleteByUser(u);
+        loginHistoryRepository.deleteByUser(u);
+
         userRepository.delete(u);
     }
 
@@ -183,7 +303,8 @@ public class UserService {
     private UserResponseDTO versDTO(User u) {
         return new UserResponseDTO(
                 u.getId(), u.getUsername(), u.getNom(), u.getPrenom(), u.getEmail(),
-                u.getRole(), u.isEnabled(), u.isEmailVerified(), u.getCreatedAt()
+                u.getRole(), u.isEnabled(), u.isEmailVerified(), u.getCreatedAt(),
+                u.getPhotoPath() != null ? "/api/auth/photo/" + u.getId() : null
         );
     }
 }

@@ -69,6 +69,13 @@ public class EquipementController {
     public void reformer(@PathVariable Long id) {
         equipementService.reformer(id);
     }
+
+    /** Suppression définitive : équipement + tout son historique lié. */
+    @DeleteMapping("/{id}/definitif")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void supprimerDefinitivement(@PathVariable Long id) {
+        equipementService.supprimerDefinitivement(id);
+    }
     @PatchMapping("/{id}/personnel")
     public ResponseEntity<Void> assignerPersonnel(
             @PathVariable Long id,

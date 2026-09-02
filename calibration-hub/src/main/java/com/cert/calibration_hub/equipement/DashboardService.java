@@ -13,15 +13,18 @@ public class DashboardService {
     private final PersonnelRepository personnelRepository;
     private final AccessoireRepository accessoireRepository;
     private final AlerteService alerteService;
+    private final LaboEtalonnageRepository laboEtalonnageRepository;
 
     public DashboardService(EquipementRepository equipementRepository,
                             PersonnelRepository personnelRepository,
                             AccessoireRepository accessoireRepository,
-                            AlerteService alerteService) {
+                            AlerteService alerteService,
+                            LaboEtalonnageRepository laboEtalonnageRepository) {
         this.equipementRepository = equipementRepository;
         this.personnelRepository = personnelRepository;
         this.accessoireRepository = accessoireRepository;
         this.alerteService = alerteService;
+        this.laboEtalonnageRepository = laboEtalonnageRepository;
     }
 
     public DashboardDTO obtenirDashboard() {
@@ -37,7 +40,8 @@ public class DashboardService {
                 repartition,
                 personnelRepository.count(),
                 accessoireRepository.count(),
-                alertesActives
+                alertesActives,
+                laboEtalonnageRepository.count()
         );
     }
 }

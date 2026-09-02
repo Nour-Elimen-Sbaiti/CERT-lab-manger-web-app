@@ -17,5 +17,6 @@ public record InterventionRequestDTO(
         String numeroBonIntervention,
         String intervenantNom,
         String intervenantSociete,
+        Long laboEtalonnageId,
         @Valid EtalonnageDetailDTO etalonnage  // rempli seulement si type = ETALONNAGE, sinon null
 ) {}

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public record ContratMaintenanceRequestDTO(
         @NotNull Long equipementId,
         @NotBlank String prestataire,
+        Long laboEtalonnageId,
         @NotNull LocalDate dateDebut,
         @NotNull LocalDate dateFin,
         @NotNull Integer periodeValeur,
