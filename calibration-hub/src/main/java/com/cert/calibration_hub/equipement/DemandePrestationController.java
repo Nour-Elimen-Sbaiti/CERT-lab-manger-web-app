@@ -47,12 +47,6 @@ public class DemandePrestationController {
         return ResponseEntity.ok(demandePrestationService.trouverParEtalonnage(etalonnageId));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<DemandePrestationResponseDTO> modifier(@PathVariable Long id,
-                                                                 @Valid @RequestBody DemandePrestationRequestDTO dto) {
-        return ResponseEntity.ok(demandePrestationService.modifier(id, dto));
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         demandePrestationService.supprimer(id);
